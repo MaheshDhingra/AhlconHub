@@ -1,30 +1,38 @@
-import { currentUser } from '@clerk/nextjs/server';
-import { db } from '@/lib/db';
+import { PrismaClient } from '@prisma/client';
 
-export const checkUser = async () => {
+const prisma = new PrismaClient();
+
+/**
+ * @param clerkUser 
+ *                  
+ */
+export async function syncUserFromClerk(clerkUser: { id: string; username: string; email?: string }) {
   try {
-    const clerkUser = await currentUser();
-
-    if (!clerkUser) return null;
-
-    const existingUser = await db.user.findUnique({
-      where: { clerkUserId: clerkUser.id },
+    let user = await prisma.user.findUnique({
+      where: { clerkId: clerkUser.id }
     });
 
-    if (existingUser) {return existingUser}else {
-      console.log("Errror")
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          clerkId: clerkUser.id,
+          username: clerkUser.username,
+          email: clerkUser.email,
+        },
+      });
+    } else {
+      user = await prisma.user.update({
+        where: { clerkId: clerkUser.id },
+        data: {
+          username: clerkUser.username,
+          email: clerkUser.email,
+        },
+      });
     }
 
-    
-    const newUser = await db.user.create({
-      data: {
-        clerkUserId: clerkUser.id,
-      },
-    });
-
-    return newUser;
+    return user;
   } catch (error) {
-    console.error('User synchronization error:', error);
-    return null;
+    console.error("Error syncing user from Clerk:", error);
+    throw error;
   }
-};
+}

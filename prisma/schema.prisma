@@ -16,35 +16,17 @@ enum PostType {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  clerkUserId  String   @unique
-  email        String   @unique
-  name         String?
-  imageUrl     String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  posts        Post[]   @relation("UserPosts")
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  posts     Post[]
+  upvotes   Post[]   @relation("Upvotes")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Post {
-<<<<<<< HEAD
-  id        String   @id @default(cuid())
-  title     String
-  content   String
-  imageUrl  String?
-  upvotes   Int      @default(0)
-  type      PostType
-  createdAt DateTime @default(now())
-  comments Comment[]
-}
-
-model Comment {
-  id String @id @default(cuid())
-  content   String
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id])
-  createdAt DateTime @default(now())
-=======
   id         String   @id @default(cuid())
   title      String
   content    String
@@ -55,5 +37,4 @@ model Comment {
   userId     String
   user       User     @relation("UserPosts", fields: [userId], references: [clerkUserId], onDelete: Cascade)
   @@index([userId])
->>>>>>> ccedd4308f003d322015912bea7d9d09a09546ec
 }
