@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -16,25 +15,35 @@ enum PostType {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  clerkId   String   @unique
-  email     String   @unique
-  name      String?
-  posts     Post[]
-  upvotedPosts   Post[]   @relation("Upvotes")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(cuid())
+  clerkId      String   @unique
+  email        String   @unique
+  name         String?
+  posts        Post[]   @relation("UserPosts")
+  upvotedPosts Post[]   @relation("Upvotes")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Post {
-  id         String   @id @default(cuid())
-  title      String
-  content    String
-  imageUrl   String?
-  upvotedBy  User[]   @relation("Upvotes")
-  type       PostType
-  createdAt  DateTime @default(now())
-  userId     String
-  user       User     @relation("UserPosts", fields: [userId], references: [clerkId], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  imageUrl  String?
+  upvotedBy User[]   @relation("Upvotes")
+  type      PostType
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation("UserPosts", fields: [userId], references: [id])
+  comments  Comment[]
+  
   @@index([userId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  createdAt DateTime @default(now())
 }
