@@ -15,6 +15,16 @@ enum PostType {
   ANNOUNCEMENT
 }
 
+model User {
+  id        String    @id
+  email     String?   @unique
+  username  String?   @unique
+  name      String?
+  imageUrl  String?
+  posts     Post[]    @relation("UserPosts")  // Explicit relation name
+  createdAt DateTime  @default(now())
+}
+
 model Post {
   id        String   @id @default(cuid())
   title     String
@@ -23,4 +33,6 @@ model Post {
   upvotes   Int      @default(0)
   type      PostType
   createdAt DateTime @default(now())
+  author    User     @relation("UserPosts", fields: [authorId], references: [id])
+  authorId  String
 }
