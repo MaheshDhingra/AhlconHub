@@ -1,12 +1,9 @@
-import React from 'react';
+import { currentUser } from '@clerk/nextjs/server'
 
-const Page: React.FC = () => {
-    return (
-        <div>
-            <h1>Welcome to AhlconHub</h1>
-            <p>This is your new page. Start building something amazing!</p>
-        </div>
-    );
-};
+export default async function Page() {
+  const user = await currentUser()
 
-export default Page;
+  if (!user) return <div>Not signed in</div>
+
+  return <div>Hello {user?.firstName}</div>
+}

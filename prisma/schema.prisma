@@ -15,7 +15,19 @@ enum PostType {
   ANNOUNCEMENT
 }
 
+model User {
+  id           String   @id @default(uuid())
+  clerkUserId  String   @unique
+  email        String   @unique
+  name         String?
+  imageUrl     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  posts        Post[]   @relation("UserPosts")
+}
+
 model Post {
+<<<<<<< HEAD
   id        String   @id @default(cuid())
   title     String
   content   String
@@ -32,4 +44,16 @@ model Comment {
   postId    String
   post      Post     @relation(fields: [postId], references: [id])
   createdAt DateTime @default(now())
+=======
+  id         String   @id @default(cuid())
+  title      String
+  content    String
+  imageUrl   String?
+  upvotes    Int      @default(0)
+  type       PostType
+  createdAt  DateTime @default(now())
+  userId     String
+  user       User     @relation("UserPosts", fields: [userId], references: [clerkUserId], onDelete: Cascade)
+  @@index([userId])
+>>>>>>> ccedd4308f003d322015912bea7d9d09a09546ec
 }
