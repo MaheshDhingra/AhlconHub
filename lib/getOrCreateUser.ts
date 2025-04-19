@@ -8,18 +8,20 @@ export async function getOrCreateUser(request: Request) {
   // Try to find the user in our Prisma database
   let user = await prisma.user.findUnique({ where: { clerkId: userId } });
   if (!user) {
-    // Get the clerk client instance
-    const client = await clerkClient();
+    // Get the clerk client instance and cast it to fix type errors
+    const client = (await clerkClient()) as unknown as { users: { getUser: (id: string) => Promise<any> } };
     // Fetch user details from Clerk
     const clerkUser = await client.users.getUser(userId);
-    const email = clerkUser.emailAddresses && clerkUser.emailAddresses.length > 0 ? clerkUser.emailAddresses[0]?.emailAddress : null;
+    const email = clerkUser.emailAddresses && clerkUser.emailAddresses.length > 0
+      ? clerkUser.emailAddresses[0]?.emailAddress
+      : `unknown-${userId}@example.com`;
     const name = clerkUser.firstName || null;
 
     // Create new user record in Prisma
     user = await prisma.user.create({
       data: {
         clerkId: userId,
-        email: email || `unknown-${userId}@example.com`,
+        email,
         name,
       },
     });

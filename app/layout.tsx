@@ -33,10 +33,10 @@ export default function RootLayout({
   return (
     <ClerkProvider appearance={{
       variables: {
-        colorPrimary: 'var(--primary)',
-        colorBackground: 'var(--background)',
-        colorText: 'var(--foreground)',
-        borderRadius: 'var(--radius)'
+        colorPrimary: '#2563eb',
+        colorBackground: '#ffffff',
+        colorText: '#000000',
+        borderRadius: '4px'
       }
     }}>
       <html lang="en">
