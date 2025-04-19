@@ -23,4 +23,13 @@ model Post {
   upvotes   Int      @default(0)
   type      PostType
   createdAt DateTime @default(now())
+  comments Comment[]
+}
+
+model Comment {
+  id String @id @default(cuid())
+  content   String
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  createdAt DateTime @default(now())
 }
