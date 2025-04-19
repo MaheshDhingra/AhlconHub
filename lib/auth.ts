@@ -11,9 +11,11 @@ export const checkUser = async () => {
       where: { clerkUserId: clerkUser.id },
     });
 
-    if (existingUser) return existingUser;
+    if (existingUser) {return existingUser}else {
+      console.log("Errror")
+    }
 
-
+    
     const newUser = await db.user.create({
       data: {
         clerkUserId: clerkUser.id,
