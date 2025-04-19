@@ -16,26 +16,24 @@ enum PostType {
 }
 
 model User {
-  id          String   @id @default(uuid())
-  clerkUserId String   @unique
-  email       String   @unique
-  name        String?
-  imageUrl    String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  posts       Post[]   @relation("UserPosts")
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  posts     Post[]
+  upvotes   Post[]   @relation("Upvotes")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Post {
   id        String   @id @default(cuid())
   title     String
   content   String
-  imageUrl  String?
-  upvotes   Int      @default(0)
   type      PostType
+  author    User     @relation(fields: [authorId], references: [id])
+  authorId  String
+  upvotedBy User[]   @relation("Upvotes")
   createdAt DateTime @default(now())
-  userId    String
-  user      User     @relation("UserPosts", fields: [userId], references: [clerkUserId], onDelete: Cascade)
-
-  @@index([userId])
+  updatedAt DateTime @updatedAt
 }
