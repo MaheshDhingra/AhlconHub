@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Sun, Moon } from "lucide-react"; // Import icons
 
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [posts, setPosts] = useState<{ id: string; title: string; content: string; imageUrl?: string }[]>([]);
+  const [isDarkMode, setIsDarkMode] = useState(false); // State for dark mode
   const router = useRouter();
 
   useEffect(() => {
@@ -26,9 +27,17 @@ export default function Home() {
     post.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+    if (!isDarkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <header className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Welcome to AhlconHub</h1>
         <div className="flex items-center space-x-4">
@@ -36,6 +45,18 @@ export default function Home() {
             <Plus className="w-4 h-4" />
             <span>Create New Post</span>
           </Button>
+
+          <button
+            onClick={toggleDarkMode}
+            className="p-2 rounded-full bg-gray-200 dark:bg-gray-800"
+            aria-label="Toggle Dark Mode"
+          >
+            {isDarkMode ? (
+              <Sun className="w-6 h-6 text-yellow-500" />
+            ) : (
+              <Moon className="w-6 h-6 text-gray-800 dark:text-gray-200" />
+            )}
+          </button>
         </div>
       </header>
 
