@@ -1,40 +1,41 @@
 import { currentUser } from '@clerk/nextjs/server';
 import { db } from '@/lib/db';
 
-export const getOrCreateUser = async () => {
+export const checkUser = async () => {
   try {
     const clerkUser = await currentUser();
 
-    if (!clerkUser) {
-      return null;
-    }
+    if (!clerkUser) return null;
 
-    // Check if user exists in database
+    // Check for existing user
     const existingUser = await db.user.findUnique({
-      where: {
-        id: clerkUser.id, 
-      },
+      where: { clerkUserId: clerkUser.id },
     });
 
-    if (existingUser) {
-      return existingUser;
+    if (existingUser) return existingUser;
+
+    // Validate required email
+    const primaryEmail = clerkUser.emailAddresses.find(
+      (email) => email.id === clerkUser.primaryEmailAddressId
+    )?.emailAddress;
+
+    if (!primaryEmail) {
+      throw new Error('No valid email found for Clerk user');
     }
 
-    // Create new user if not exists
+    // Create new user
     const newUser = await db.user.create({
       data: {
-        id: clerkUser.id, // Directly use Clerk's user ID
-        email: clerkUser.emailAddresses[0]?.emailAddress,
-        username: clerkUser.username || null,
-        name: [clerkUser.firstName, clerkUser.lastName].join(' ').trim(),
+        clerkUserId: clerkUser.id,
+        email: primaryEmail,
+        name: [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(' '),
         imageUrl: clerkUser.imageUrl,
       },
     });
 
     return newUser;
-
   } catch (error) {
-    console.error('Error in getOrCreateUser:', error);
+    console.error('User synchronization error:', error);
     return null;
   }
 };
