@@ -21,7 +21,7 @@ model User {
   email     String   @unique
   name      String?
   posts     Post[]
-  upvotes   Post[]   @relation("Upvotes")
+  upvotedPosts   Post[]   @relation("Upvotes")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -31,10 +31,10 @@ model Post {
   title      String
   content    String
   imageUrl   String?
-  upvotes    Int      @default(0)
+  upvotedBy  User[]   @relation("Upvotes")
   type       PostType
   createdAt  DateTime @default(now())
   userId     String
-  user       User     @relation("UserPosts", fields: [userId], references: [clerkUserId], onDelete: Cascade)
+  user       User     @relation("UserPosts", fields: [userId], references: [clerkId], onDelete: Cascade)
   @@index([userId])
 }
