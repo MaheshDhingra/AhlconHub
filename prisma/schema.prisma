@@ -7,43 +7,23 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum PostType {
-  COMPLAINT
-  DISCUSSION
-  QUESTION
-  ANNOUNCEMENT
-}
-
 model User {
-  id           String   @id @default(cuid())
-  clerkId      String   @unique
-  email        String   @unique
-  name         String?
-  posts        Post[]   @relation("UserPosts")
-  upvotedPosts Post[]   @relation("Upvotes")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  email       String   @unique
+  name        String?
+  password    String?
+  imageUrl    String?
+  clerkUserId String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  posts       Post[]
 }
 
 model Post {
-  id        String   @id @default(cuid())
+  id        Int     @id @default(autoincrement())
   title     String
-  content   String
-  imageUrl  String?
-  upvotedBy User[]   @relation("Upvotes")
-  type      PostType
-  createdAt DateTime @default(now())
-  userId    String
-  user      User     @relation("UserPosts", fields: [userId], references: [id])
-  comments  Comment[]
-  
-  @@index([userId])
-}
-
-model Comment {
-  id        String   @id @default(cuid())
-  content   String
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id])
-  createdAt DateTime @default(now())
+  content   String?
+  published Boolean @default(false)
+  author    User    @relation(fields: [authorId], references: [id])
+  authorId  Int
 }
