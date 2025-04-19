@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PostType {
+  COMPLAINT
+  DISCUSSION
+  QUESTION
+  ANNOUNCEMENT
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  posts     Post[]
+  upvotes   Post[]   @relation("Upvotes")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Post {
+  id         String   @id @default(cuid())
+  title      String
+  content    String
+  imageUrl   String?
+  upvotes    Int      @default(0)
+  type       PostType
+  createdAt  DateTime @default(now())
+  userId     String
+  user       User     @relation("UserPosts", fields: [userId], references: [clerkUserId], onDelete: Cascade)
+  @@index([userId])
+}
