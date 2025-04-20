@@ -1,4 +1,3 @@
-// app/api/posts/route.ts
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
@@ -8,9 +7,10 @@ export async function GET() {
     const posts = await prisma.post.findMany({
       include: {
         user: true,
+        upvotes: true
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: 'desc'
       },
     });
 
@@ -44,7 +44,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Verify user exists in database
     const user = await prisma.user.findUnique({
       where: { clerkUserId },
     });
