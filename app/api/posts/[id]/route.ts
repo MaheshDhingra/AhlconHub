@@ -38,28 +38,40 @@ export async function POST(
     });
 
     if (existingUpvote) {
-      return NextResponse.json(
-        { error: 'Already upvoted' },
-        { status: 400 }
-      );
+      // Delete upvote and decrement count
+      const [deletedUpvote, updatedPost] = await prisma.$transaction([
+        prisma.upvote.delete({
+          where: {
+            clerkUserId_postId: {
+              clerkUserId,
+              postId: params.id
+            }
+          }
+        }),
+        prisma.post.update({
+          where: { id: params.id },
+          data: { upvotes: { decrement: 1 } }
+        })
+      ]);
+
+      return NextResponse.json(updatedPost);
+    } else {
+      // Create upvote and increment count
+      const [upvote, updatedPost] = await prisma.$transaction([
+        prisma.upvote.create({
+          data: {
+            clerkUserId,
+            postId: params.id
+          }
+        }),
+        prisma.post.update({
+          where: { id: params.id },
+          data: { upvotes: { increment: 1 } }
+        })
+      ]);
+
+      return NextResponse.json(updatedPost);
     }
-
-    // Create upvote and update count
-    const [upvote, updatedPost] = await prisma.$transaction([
-      prisma.upvote.create({
-        data: {
-          clerkUserId,
-          postId: params.id
-        }
-      }),
-      prisma.post.update({
-        where: { id: params.id },
-        data: { upvotes: { increment: 1 } }
-      })
-    ]);
-
-    return NextResponse.json(updatedPost);
-    
   } catch (error) {
     console.error('[UPVOTE_ERROR]', error);
     return NextResponse.json(
