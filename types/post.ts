@@ -1,15 +1,7 @@
-export type PostType =
-  | 'COMPLAINT'
-  | 'DISCUSSION'
-  | 'QUESTION'
-  | 'ANNOUNCEMENT';
-
-export interface Post {
+export interface Transaction {
   id: string;
-  title: string;
-  content: string;
-  imageUrl?: string;
-  upvotes: number;
-  type: PostType;
+  text: string;
+  amount: number;
+  userId: string;
   createdAt: Date;
 }

@@ -1,9 +1,17 @@
-import { currentUser } from '@clerk/nextjs/server'
+import { currentUser } from '@clerk/nextjs/server';
 
-export default async function Page() {
-  const user = await currentUser()
+const HomePage = async () => {
+  const user = await currentUser();
 
-  if (!user) return <div>Not signed in</div>
+  if (!user) {
+    return console.error('User not found');
+  }
 
-  return <div>Hello {user?.firstName}</div>
-}
+  return (
+    <main>
+      <h2>Welcome, {user.firstName}</h2>
+    </main>
+  );
+};
+
+export default HomePage;
