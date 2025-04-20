@@ -8,8 +8,8 @@ import 'react-toastify/dist/ReactToastify.css';
 const roboto = Roboto({ weight: '400', subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Expense Tracker',
-  description: 'Track your expenses and create a budget',
+  title: 'Ahlcon Hub',
+  description: 'Ahlcon Hub is a forum for true ahlconites',
 };
 
 export default function RootLayout({
