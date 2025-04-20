@@ -6,7 +6,6 @@ export async function POST(
   req: Request,
   { params }: { params: { postId: string } }
 ) {
-  const { postId } = await params;
   try {
     const { userId: clerkUserId } = await auth();
     if (!clerkUserId) {
@@ -23,21 +22,25 @@ export async function POST(
       );
     }
 
+    // Validate parentId exists if provided
+    if (parentId) {
+      const parentExists = await prisma.comment.findUnique({
+        where: { id: parentId }
+      });
+      if (!parentExists) {
+        return NextResponse.json(
+          { error: 'Parent comment not found' },
+          { status: 404 }
+        );
+      }
+    }
+
     const comment = await prisma.comment.create({
       data: {
         content,
-        postId: postId,
-        ...(parentId ? { parent: { connect: { id: parentId } } } : {}),
-        user: {
-          connect: {
-            clerkUserId: clerkUserId,
-          },
-        },
-        post: {
-          connect: {
-            id: postId,
-          },
-        },
+        postId: params.postId,
+        userId: clerkUserId,
+        parentId: parentId || undefined, // Use undefined instead of null
       },
       include: {
         user: true,
