@@ -7,8 +7,9 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const { id } = await params;
     const post = await prisma.post.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       include: {
         user: true,
         upvotes: true
@@ -33,6 +34,7 @@ export async function POST(
   req: Request,
   { params }: { params: { id: string } }
 ) {
+  const { id } = await params;
   try {
     const { userId: clerkUserId } = await auth();
     if (!clerkUserId) {
@@ -46,9 +48,9 @@ export async function POST(
       where: {
         clerkUserId_postId: {
           clerkUserId,
-          postId: params.id
-        }
-      }
+          postId: id,
+        },
+      },
     });
 
     if (existingUpvote) {
@@ -62,12 +64,21 @@ export async function POST(
       prisma.upvote.create({
         data: {
           clerkUserId,
-          postId: params.id
+          postId: id
         }
       }),
       prisma.post.update({
-        where: { id: params.id },
-        data: { upvotes: { increment: 1 } }
+        where: { id: id },
+        data: {
+          upvotes: {
+            connect: {
+              clerkUserId_postId: {
+                clerkUserId: clerkUserId,
+                postId: id
+              }
+            }
+          }
+        }
       })
     ]);
 

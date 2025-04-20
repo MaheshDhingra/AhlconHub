@@ -8,7 +8,11 @@ async function getPost(id: string) {
     where: { id },
     include: {
       user: true,
-      upvotes: true
+      upvotes: {
+        select: {
+          clerkUserId: true
+        }
+      }
     }
   });
 
@@ -20,7 +24,8 @@ export default async function PostPage({
 }: {
   params: { id: string }
 }) {
-  const post = await getPost(params.id);
+  const { id } = await params;
+  const post = await getPost(id);
   const { userId } = await auth();
 
   if (!post) return notFound();
