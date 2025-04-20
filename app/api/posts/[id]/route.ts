@@ -2,33 +2,6 @@ import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const post = await prisma.post.findUnique({
-      where: { id: params.id },
-      include: {
-        user: true,
-        upvotes: true
-      },
-    });
-
-    if (!post) return NextResponse.json(
-      { error: 'Post not found' }, 
-      { status: 404 }
-    );
-
-    return NextResponse.json(post);
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
-  }
-}
-
 export async function POST(
   req: Request,
   { params }: { params: { id: string } }
@@ -42,6 +15,19 @@ export async function POST(
       );
     }
 
+    // Verify user exists
+    const user = await prisma.user.findUnique({
+      where: { clerkUserId },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Check existing upvote
     const existingUpvote = await prisma.upvote.findUnique({
       where: {
         clerkUserId_postId: {
@@ -52,27 +38,42 @@ export async function POST(
     });
 
     if (existingUpvote) {
-      return NextResponse.json(
-        { error: 'Already upvoted' },
-        { status: 400 }
-      );
+      // Delete upvote and decrement count
+      const [deletedUpvote, updatedPost] = await prisma.$transaction([
+        prisma.upvote.delete({
+          where: {
+            clerkUserId_postId: {
+              clerkUserId,
+              postId: params.id
+            }
+          }
+        }),
+        prisma.post.update({
+          where: { id: params.id },
+          data: { upvotes: { decrement: 1 } }
+        })
+      ]);
+
+      return NextResponse.json(updatedPost);
+    } else {
+      // Create upvote and increment count
+      const [upvote, updatedPost] = await prisma.$transaction([
+        prisma.upvote.create({
+          data: {
+            clerkUserId,
+            postId: params.id
+          }
+        }),
+        prisma.post.update({
+          where: { id: params.id },
+          data: { upvotes: { increment: 1 } }
+        })
+      ]);
+
+      return NextResponse.json(updatedPost);
     }
-
-    const [upvote, updatedPost] = await prisma.$transaction([
-      prisma.upvote.create({
-        data: {
-          clerkUserId,
-          postId: params.id
-        }
-      }),
-      prisma.post.update({
-        where: { id: params.id },
-        data: { upvotes: { increment: 1 } }
-      })
-    ]);
-
-    return NextResponse.json(updatedPost);
   } catch (error) {
+    console.error('[UPVOTE_ERROR]', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }

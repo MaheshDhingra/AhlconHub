@@ -17,31 +17,40 @@ export default function UpvoteButton({
   const { isSignedIn } = useAuth();
 
   const handleUpvote = async () => {
-    if (!isSignedIn || hasUpvoted) return;
-    
+    if (!isSignedIn) return;
+
     try {
-      setUpvotes(prev => prev + 1);
-      setHasUpvoted(true);
-      
+      let newUpvotes = upvotes;
+      let newHasUpvoted = !hasUpvoted;
+
+      if (newHasUpvoted) {
+        newUpvotes = upvotes + 1;
+      } else {
+        newUpvotes = upvotes - 1;
+      }
+
+      setUpvotes(newUpvotes);
+      setHasUpvoted(newHasUpvoted);
+
       const response = await fetch(`/api/posts/${postId}`, {
         method: 'POST'
       });
 
       if (!response.ok) {
-        setUpvotes(prev => prev - 1);
-        setHasUpvoted(false);
+        setUpvotes(prev => prev + (newHasUpvoted ? -1 : 1));
+        setHasUpvoted(hasUpvoted);
       }
     } catch (error) {
       console.error('Upvote failed:', error);
-      setUpvotes(prev => prev - 1);
-      setHasUpvoted(false);
+      setUpvotes(prev => prev + (newHasUpvoted ? -1 : 1));
+      setHasUpvoted(hasUpvoted);
     }
   };
 
   return (
     <button
       onClick={handleUpvote}
-      disabled={hasUpvoted || !isSignedIn}
+      disabled={!isSignedIn}
       className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
         hasUpvoted 
           ? 'bg-blue-600 text-white cursor-default'

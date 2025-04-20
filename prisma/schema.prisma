@@ -17,6 +17,7 @@ model User {
   updatedAt   DateTime @updatedAt
   posts       Post[]
   upvotes     Upvote[]
+  comments    Comment[]
 }
 
 model Post {
@@ -27,6 +28,7 @@ model Post {
   user        User     @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade)
   createdAt   DateTime @default(now())
   upvotes     Upvote[]
+  comments    Comment[]
   
   @@index([userId])
 }
@@ -38,4 +40,22 @@ model Upvote {
   postId     String
 
   @@id([clerkUserId, postId])
+}
+
+
+model Comment {
+  id        String   @id @default(uuid())
+  content   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade)
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parentId  String?
+  parent    Comment? @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   Comment[] @relation("CommentReplies")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId])
+  @@index([userId])
 }
