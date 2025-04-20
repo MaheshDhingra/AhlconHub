@@ -2,7 +2,10 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-const isProtectedRoute = createRouteMatcher(["/posts(.*)"]);
+const isProtectedRoute = createRouteMatcher([
+  "/posts(.*)",
+  "/api/posts(.*)"
+]);
 
 export default clerkMiddleware(async (auth, req) => {
   if (isProtectedRoute(req)) {
@@ -14,7 +17,7 @@ export default clerkMiddleware(async (auth, req) => {
         where: { clerkUserId },
         create: {
           clerkUserId,
-          email: "", // Add email from Clerk if available
+          email: "", // Update with Clerk data if available
           name: "Anonymous",
         },
         update: {},

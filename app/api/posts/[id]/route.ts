@@ -1,42 +1,13 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs';
 import prisma from '@/lib/prisma';
-
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const { id } = await params;
-    const post = await prisma.post.findUnique({
-      where: { id: id },
-      include: {
-        user: true,
-        upvotes: true
-      },
-    });
-
-    if (!post) return NextResponse.json(
-      { error: 'Post not found' }, 
-      { status: 404 }
-    );
-
-    return NextResponse.json(post);
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Internal Server Error' },
-      { status: 500 }
-    );
-  }
-}
 
 export async function POST(
   req: Request,
   { params }: { params: { id: string } }
 ) {
-  const { id } = await params;
   try {
-    const { userId: clerkUserId } = await auth();
+    const { userId: clerkUserId } = auth();
     if (!clerkUserId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -44,13 +15,26 @@ export async function POST(
       );
     }
 
+    // Verify user exists
+    const user = await prisma.user.findUnique({
+      where: { clerkUserId },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      );
+    }
+
+    // Check existing upvote
     const existingUpvote = await prisma.upvote.findUnique({
       where: {
         clerkUserId_postId: {
           clerkUserId,
-          postId: id,
-        },
-      },
+          postId: params.id
+        }
+      }
     });
 
     if (existingUpvote) {
@@ -60,30 +44,24 @@ export async function POST(
       );
     }
 
+    // Create upvote and update count
     const [upvote, updatedPost] = await prisma.$transaction([
       prisma.upvote.create({
         data: {
           clerkUserId,
-          postId: id
+          postId: params.id
         }
       }),
       prisma.post.update({
-        where: { id: id },
-        data: {
-          upvotes: {
-            connect: {
-              clerkUserId_postId: {
-                clerkUserId: clerkUserId,
-                postId: id
-              }
-            }
-          }
-        }
+        where: { id: params.id },
+        data: { upvotes: { increment: 1 } }
       })
     ]);
 
     return NextResponse.json(updatedPost);
+    
   } catch (error) {
+    console.error('[UPVOTE_ERROR]', error);
     return NextResponse.json(
       { error: 'Internal Server Error' },
       { status: 500 }
