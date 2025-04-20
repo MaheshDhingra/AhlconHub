@@ -16,7 +16,7 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   posts       Post[]
-  upvotedPosts Post[]  @relation("Upvotes")
+  upvotes     Upvote[]
 }
 
 model Post {
@@ -26,8 +26,16 @@ model Post {
   userId      String
   user        User     @relation(fields: [userId], references: [clerkUserId], onDelete: Cascade)
   createdAt   DateTime @default(now())
-  upvotes     Int      @default(0)
-  upvotedBy   User[]   @relation("Upvotes")
-
+  upvotes     Upvote[]
+  
   @@index([userId])
+}
+
+model Upvote {
+  user      User   @relation(fields: [clerkUserId], references: [clerkUserId])
+  post      Post   @relation(fields: [postId], references: [id])
+  clerkUserId String
+  postId     String
+
+  @@id([clerkUserId, postId])
 }
