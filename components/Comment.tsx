@@ -57,7 +57,7 @@ export default function CommentComponent({
       )}
 
       {replies.map((reply: any) => (
-        <Comment
+        <CommentComponent
           key={reply.id}
           comment={reply}
           postId={postId}

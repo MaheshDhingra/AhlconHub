@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import prisma from '@/lib/prisma';
+export const dynamic = 'force-dynamic';
 
 export async function POST(
   req: Request,
-  { params }: { params: { postId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
     const { userId: clerkUserId } = await auth();
@@ -24,7 +25,7 @@ export async function POST(
 
     // Validate parentId exists if provided
     if (parentId) {
-      const parentExists = await prisma.comment.findUnique({
+      const parentExists = await prisma['comment'].findUnique({
         where: { id: parentId }
       });
       if (!parentExists) {
@@ -34,11 +35,10 @@ export async function POST(
         );
       }
     }
-
-    const comment = await prisma.comment.create({
+    const comment = await prisma['comment'].create({
       data: {
         content,
-        postId: params.postId,
+        postId: params.id,
         userId: clerkUserId,
         parentId: parentId || undefined, // Use undefined instead of null
       },
@@ -61,12 +61,12 @@ export async function POST(
 
 export async function GET(
   req: Request,
-  { params }: { params: { postId: string } }
+  { params }: { params: { id: string } }
 ) {
   try {
-    const comments = await prisma.comment.findMany({
+    const comments = await prisma['comment'].findMany({
       where: {
-        postId: params.postId,
+        postId: params.id,
         parentId: null,
       },
       include: {
@@ -82,9 +82,7 @@ export async function GET(
         createdAt: 'desc',
       },
     });
-
     return NextResponse.json(comments);
-    
   } catch (error) {
     console.error('[COMMENTS_GET]', error);
     return NextResponse.json(
