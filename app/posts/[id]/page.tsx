@@ -1,11 +1,18 @@
 import { notFound } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
 import UpvoteButton from '@/components/UpvoteButton';
+import prisma from '@/lib/prisma';
 
 async function getPost(id: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/posts/${id}`);
-  if (!res.ok) return null;
-  return res.json();
+  const post = await prisma.post.findUnique({
+    where: { id },
+    include: {
+      user: true,
+      upvotes: true
+    }
+  });
+
+  return post;
 }
 
 export default async function PostPage({
@@ -24,9 +31,9 @@ export default async function PostPage({
       <div className="flex items-center gap-4 mb-6">
         <UpvoteButton 
           postId={post.id} 
-          initialUpvotes={post.upvotes}
-          initialHasUpvoted={post.upvotedBy.some(
-            (u: any) => u.clerkUserId === userId
+          initialUpvotes={post.upvotes.length}
+          initialHasUpvoted={post.upvotes.some(
+            (upvote) => upvote.clerkUserId === userId
           )}
         />
         <span className="text-gray-600">
